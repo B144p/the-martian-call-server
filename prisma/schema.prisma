@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Continent {
+  id             String      @id
+  display_name   String
+  pusher_channel String
+  map_center_lat Float
+  map_center_lng Float
+  users          User[]
+  signal_log     SignalLog[]
+
+  @@map("continents")
+}
+
+model User {
+  id                String     @id @default(uuid())
+  google_id         String     @unique
+  callsign          String
+  continent_id      String
+  antenna_direction Int        @default(0)
+  is_transmitting   Boolean    @default(false)
+  created_at        DateTime   @default(now())
+  last_seen_at      DateTime   @default(now())
+  continent         Continent  @relation(fields: [continent_id], references: [id])
+  messages          Message[]
+  signal_log        SignalLog[]
+
+  @@index([continent_id])
+  @@index([last_seen_at])
+  @@map("users")
+}
+
+enum MessageStatus {
+  queued
+  transmitting
+  sent
+  interrupted
+}
+
+model Message {
+  id                      String        @id @default(uuid())
+  sender_id               String
+  sender_continent        String
+  sender_direction        Int
+  target_continents       String[]
+  content                 String
+  hex_sequence            String
+  status                  MessageStatus @default(queued)
+  chars_sent              Int           @default(0)
+  created_at              DateTime      @default(now())
+  transmission_started_at DateTime?
+  transmission_ends_at    DateTime?
+  sender                  User          @relation(fields: [sender_id], references: [id])
+
+  @@index([status, transmission_ends_at])
+  @@index([sender_id])
+  @@map("messages")
+}
+
+model SignalLog {
+  id               String    @id @default(uuid())
+  recipient_id     String
+  sender_continent String
+  sender_direction Int
+  transmitted_at   DateTime
+  read_at          DateTime?
+  recipient        User      @relation(fields: [recipient_id], references: [id])
+  continent        Continent @relation(fields: [sender_continent], references: [id])
+
+  @@index([recipient_id, read_at])
+  @@map("signal_log")
+}
