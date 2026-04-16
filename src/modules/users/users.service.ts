@@ -3,7 +3,7 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
-import { MessageStatus, User } from '@prisma/client';
+import { Message, MessageStatus, User } from '@prisma/client';
 import { generateCallsign } from '../../lib/callsign.util';
 import { CONTINENT_IDS, RECENTLY_SEEN_WINDOW_MS } from '../../lib/constants';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -50,15 +50,64 @@ export class UsersService {
     });
   }
 
-  async getMe(user: User): Promise<{ user: UserResponseDto; activeMessage: MessageResponseDto | null }> {
+  async getMe(user: User): Promise<{
+    user: UserResponseDto;
+    activeMessage: MessageResponseDto | null;
+  }> {
     let activeMessage: MessageResponseDto | null = null;
+    let resolvedUser = user;
+
     if (user.is_transmitting) {
       const message = await this.prisma.message.findFirst({
         where: { sender_id: user.id, status: MessageStatus.transmitting },
       });
-      activeMessage = message ? MessageResponseDto.from(message) : null;
+
+      resolvedUser = await this.healStuckTransmission(user, message);
+
+      activeMessage =
+        resolvedUser.is_transmitting && message
+          ? MessageResponseDto.from(message)
+          : null;
     }
-    return { user: UserResponseDto.from(user), activeMessage };
+
+    return { user: UserResponseDto.from(resolvedUser), activeMessage };
+  }
+
+  // Repairs two stuck-state cases that occur when the cron job hasn't run.
+  // Intentionally skips Pusher events and SignalLog writes — this is a
+  // state-repair path, not a delivery path.
+  private async healStuckTransmission(
+    user: User,
+    message: Message | null,
+  ): Promise<User> {
+    const now = new Date();
+
+    if (
+      user.is_transmitting &&
+      message !== null &&
+      message.transmission_ends_at !== null &&
+      message.transmission_ends_at <= now
+    ) {
+      return this.prisma.$transaction(async (tx) => {
+        await tx.message.update({
+          where: { id: message.id },
+          data: { status: MessageStatus.sent },
+        });
+        return tx.user.update({
+          where: { id: user.id },
+          data: { is_transmitting: false },
+        });
+      });
+    }
+
+    if (user.is_transmitting && message === null) {
+      return this.prisma.user.update({
+        where: { id: user.id },
+        data: { is_transmitting: false },
+      });
+    }
+
+    return user;
   }
 
   async rotateAntenna(user: User, direction: number): Promise<UserResponseDto> {
@@ -66,10 +115,11 @@ export class UsersService {
       throw new ForbiddenException('Cannot rotate antenna while transmitting');
     }
 
-    const expectedDirection = (user.antenna_direction + 30) % 360;
-    if (direction !== expectedDirection) {
+    const cwStep = (user.antenna_direction + 30) % 360;
+    const ccwStep = (user.antenna_direction - 30 + 360) % 360;
+    if (direction !== cwStep && direction !== ccwStep) {
       throw new BadRequestException(
-        `Direction must advance exactly one step: expected ${expectedDirection}`,
+        `Direction must advance exactly one step: expected ${cwStep} or ${ccwStep}`,
       );
     }
 
