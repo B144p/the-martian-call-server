@@ -7,13 +7,10 @@ const envSchema = z.object({
   GOOGLE_CALLBACK_URL: z.string().url(),
   JWT_SECRET: z.string().min(1),
   JWT_EXPIRES_IN: z.string().min(1),
-  PUSHER_APP_ID: z.string().min(1),
-  PUSHER_KEY: z.string().min(1),
-  PUSHER_SECRET: z.string().min(1),
-  PUSHER_CLUSTER: z.string().min(1),
-  CRON_SECRET: z.string().min(1),
   FRONTEND_URL: z.string().url(),
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  NODE_ENV: z
+    .enum(['development', 'production', 'test'])
+    .default('development'),
   PORT: z.coerce.number().default(3001),
 });
 

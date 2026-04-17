@@ -5,25 +5,23 @@ import { validateEnv } from './config/env.validation';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { LastSeenInterceptor } from './common/interceptors/last-seen.interceptor';
 import { PrismaModule } from './prisma/prisma.module';
-import { PusherModule } from './pusher/pusher.module';
+import { GatewayModule } from './modules/gateway/gateway.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { MessagesModule } from './modules/messages/messages.module';
 import { SignalLogModule } from './modules/signal-log/signal-log.module';
 import { StatsModule } from './modules/stats/stats.module';
-import { CronModule } from './modules/cron/cron.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
     PrismaModule,
-    PusherModule,
+    GatewayModule,
     AuthModule,
     UsersModule,
     MessagesModule,
     SignalLogModule,
     StatsModule,
-    CronModule,
   ],
   providers: [
     {

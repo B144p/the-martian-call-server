@@ -6,7 +6,6 @@ import { Env } from '../../config/env.validation';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { CronAuthGuard } from './guards/cron-auth.guard';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
@@ -24,7 +23,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     UsersModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy, JwtStrategy, GoogleAuthGuard, CronAuthGuard],
-  exports: [AuthService, CronAuthGuard],
+  providers: [AuthService, GoogleStrategy, JwtStrategy, GoogleAuthGuard],
+  exports: [AuthService],
 })
 export class AuthModule {}

@@ -2,7 +2,6 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import * as express from 'express';
 import { AppModule } from './app.module';
 import { Env } from './config/env.validation';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -14,9 +13,6 @@ async function bootstrap() {
   const config = app.get(ConfigService<Env, true>);
 
   app.setGlobalPrefix('api/v1');
-
-  // Needed for Pusher auth (sends application/x-www-form-urlencoded)
-  app.use(express.urlencoded({ extended: false }));
 
   app.useGlobalPipes(
     new ValidationPipe({
