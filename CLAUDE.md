@@ -11,6 +11,8 @@
 - Zod (validation)
 - Class-validator + Class-transformer (DTO validation)
 - PNPM (Package Management)
+- @nestjs/websockets + @nestjs/platform-socket.io — WebSocket gateway
+- socket.io — WebSocket server (used under the hood by NestJS gateway)
 
 ## Prisma Rules
 - `prisma/schema.prisma` is the **source of truth** for all DB structure
@@ -77,6 +79,17 @@
   - 404: not found
   - 500: server error — never expose stack trace or raw error message
 
+## WebSocket Gateway Rules
+- All WebSocket logic lives in `src/modules/gateway/` — one `SignalGateway` for this project
+- Use `@WebSocketGateway({ cors: { origin: ConfigService value } })` — never hardcode CORS origin
+- Authenticate every socket connection in `handleConnection()` by extracting and verifying the JWT from `socket.handshake.auth.token` — disconnect unauthenticated sockets immediately
+- On successful connection, call `socket.join(\`region:${user.continent_id}\`)` to assign the user to their continent room
+- Expose the Socket.io server via `@WebSocketServer() server: Server` and inject the gateway into services that need to emit events
+- Emit to a continent room from a service: `this.gateway.server.to(\`region:${continentId}\`).emit('signal:received', payload)`
+- Transmission delivery timing: use `setTimeout(deliver, transmission_ends_at - Date.now())` — store the timeout reference keyed by message ID so it can be cleared on interrupt
+- On server startup, query all messages with `status = 'transmitting'` and reschedule their delivery — this recovers in-flight transmissions after a restart
+- Never use Pusher — all real-time delivery goes through the WebSocket gateway
+
 ## Environment Variables
 - Always access env via `ConfigService` — never use `process.env` directly in code
 - All required env vars must be validated on app startup via `ConfigModule`
@@ -95,3 +108,6 @@
 - Do not expose Swagger UI in production — development only
 - Do not use `process.env` directly — use `ConfigService`
 - Do not edit files inside `prisma/migrations/` manually
+- Do not use Pusher — use the WebSocket gateway for all real-time events
+- Do not use `@nestjs/schedule` for transmission timing — use `setTimeout` with a stored reference instead (allows precise cancellation on interrupt)
+- Do not call `socket.join()` from client-side — always assign rooms in `handleConnection()` on the server
