@@ -11,6 +11,11 @@
       "sourceType": "github",
       "computedHash": "46097125b4fd92bfffc3aaace17f9143440335173095a5a880c94a349ad15f7d"
     },
+    "nestjs-websocket-gateway": {
+      "source": "B144p/nestjs-skills",
+      "sourceType": "github",
+      "computedHash": "195cf9383cd696d052ee329fad8eb0bf33dfbdd5807b878537f40f6664c33f4b"
+    },
     "prisma-expert": {
       "source": "sickn33/antigravity-awesome-skills",
       "sourceType": "github",
