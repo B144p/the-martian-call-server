@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "skills": {
+    "javascript-typescript-jest": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "0073d19ab0275eb6a8200aced6789a53744667bd717b5d1f44ce708a1740e5d4"
+    },
+    "nestjs-best-practices": {
+      "source": "kadajett/agent-nestjs-skills",
+      "sourceType": "github",
+      "computedHash": "1b6f82e889d19d305e38e35594de08eca0242321f353cafa4cf5e61dd3aa1a73"
+    },
+    "nestjs-expert": {
+      "source": "jeffallan/claude-skills",
+      "sourceType": "github",
+      "computedHash": "46097125b4fd92bfffc3aaace17f9143440335173095a5a880c94a349ad15f7d"
+    },
+    "nestjs-websocket-gateway": {
+      "source": "B144p/nestjs-skills",
+      "sourceType": "github",
+      "computedHash": "195cf9383cd696d052ee329fad8eb0bf33dfbdd5807b878537f40f6664c33f4b"
+    },
+    "prisma-expert": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "61edd53dd0b0f13c5902fef69336a16b2968aac386c0a29de6d595b3504297e1"
+    },
+    "prisma-postgres": {
+      "source": "prisma/skills",
+      "sourceType": "github",
+      "computedHash": "d090d1206fb6a2dd9f7b9f658d851ccd653132512c53c6e0a164110d9ee80005"
+    },
+    "typescript-advanced-types": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "3a3be8c925f96ac4e1280db28a01677e7ca5197f3792de2bbf35ab3bb324b6dd"
+    }
+  }
+}
