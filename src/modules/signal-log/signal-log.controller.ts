@@ -18,7 +18,9 @@ export class SignalLogController {
   constructor(private readonly signalLogService: SignalLogService) {}
 
   @Get('feed')
-  @ApiOperation({ summary: 'Get last 50 received signals for the user continent' })
+  @ApiOperation({
+    summary: 'Get last 50 received signals for the user continent',
+  })
   @ApiResponse({ status: 200, type: [SignalFeedResponseDto] })
   getSignalFeed(@CurrentUser() user: User): Promise<SignalFeedResponseDto[]> {
     return this.signalLogService.getSignalFeed(user.continent_id);
@@ -26,7 +28,10 @@ export class SignalLogController {
 
   @Get('missed/count')
   @ApiOperation({ summary: 'Count unread missed signals' })
-  @ApiResponse({ status: 200, schema: { properties: { count: { type: 'number' } } } })
+  @ApiResponse({
+    status: 200,
+    schema: { properties: { count: { type: 'number' } } },
+  })
   async getMissedCount(@CurrentUser() user: User): Promise<{ count: number }> {
     const count = await this.signalLogService.countUnread(user.id);
     return { count };

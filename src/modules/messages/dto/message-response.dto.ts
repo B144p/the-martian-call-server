@@ -30,8 +30,10 @@ export class MessageResponseDto {
     dto.hex_sequence = message.hex_sequence;
     dto.status = message.status;
     dto.chars_sent = message.chars_sent;
-    dto.transmission_started_at = message.transmission_started_at?.toISOString() ?? null;
-    dto.transmission_ends_at = message.transmission_ends_at?.toISOString() ?? null;
+    dto.transmission_started_at =
+      message.transmission_started_at?.toISOString() ?? null;
+    dto.transmission_ends_at =
+      message.transmission_ends_at?.toISOString() ?? null;
     return dto;
   }
 }

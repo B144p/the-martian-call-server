@@ -1,25 +1,50 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import './helpers/env';
+import request from 'supertest';
 import { App } from 'supertest/types';
-import { AppModule } from './../src/app.module';
+import { createTestApp, TestApp } from './helpers/app-setup';
 
-describe('AppController (e2e)', () => {
-  let app: INestApplication<App>;
+describe('Global envelope + auth guard (e2e)', () => {
+  let ctx: TestApp;
 
-  beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
+  beforeAll(async () => {
+    ctx = await createTestApp();
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
+  afterAll(() => ctx.close());
+
+  it('returns 401 { data, error, meta } on a protected route without a token', async () => {
+    const res = await request(ctx.app.getHttpServer() as App)
+      .get('/api/v1/users/me')
+      .expect(401);
+
+    expect(res.body).toMatchObject({
+      data: null,
+      error: { code: 'UNAUTHORIZED' },
+      meta: {},
+    });
+  });
+
+  it('wraps 2xx responses in { data, error: null, meta }', async () => {
+    ctx.prisma.user.count.mockResolvedValue(2);
+    ctx.prisma.user.findMany.mockResolvedValue([]);
+
+    const res = await request(ctx.app.getHttpServer() as App)
+      .get('/api/v1/stats')
+      .expect(200);
+
+    expect(res.body).toMatchObject({
+      data: expect.any(Object),
+      error: null,
+      meta: {},
+    });
+  });
+
+  it('returns 404 with error envelope for unknown routes', async () => {
+    const res = await request(ctx.app.getHttpServer() as App)
+      .get('/api/v1/does-not-exist')
+      .expect(404);
+
+    expect(res.body).toHaveProperty('error');
+    expect(res.body).toHaveProperty('data', null);
   });
 });

@@ -28,7 +28,10 @@ export class MessagesService implements OnModuleInit {
 
     const now = Date.now();
     for (const msg of inFlight) {
-      const delay = Math.max(0, (msg.transmission_ends_at?.getTime() ?? now) - now);
+      const delay = Math.max(
+        0,
+        (msg.transmission_ends_at?.getTime() ?? now) - now,
+      );
       const timer = setTimeout(() => this.deliverMessage(msg.id), delay);
       this.timers.set(msg.id, timer);
     }
@@ -41,8 +44,13 @@ export class MessagesService implements OnModuleInit {
 
     const now = new Date();
     const transmissionDurationMs = (content.length / 2.0) * 1000;
-    const transmission_ends_at = new Date(now.getTime() + transmissionDurationMs);
-    const targetContinents = getTargetContinents(user.continent_id, user.antenna_direction);
+    const transmission_ends_at = new Date(
+      now.getTime() + transmissionDurationMs,
+    );
+    const targetContinents = getTargetContinents(
+      user.continent_id,
+      user.antenna_direction,
+    );
     const hexSequence = toHexSequence(content);
 
     const message = await this.prisma.$transaction(async (tx) => {
@@ -66,13 +74,19 @@ export class MessagesService implements OnModuleInit {
       return msg;
     });
 
-    const timer = setTimeout(() => this.deliverMessage(message.id), transmissionDurationMs);
+    const timer = setTimeout(
+      () => this.deliverMessage(message.id),
+      transmissionDurationMs,
+    );
     this.timers.set(message.id, timer);
 
     return MessageResponseDto.from(message);
   }
 
-  async interruptMessage(user: User, messageId: string): Promise<MessageResponseDto> {
+  async interruptMessage(
+    user: User,
+    messageId: string,
+  ): Promise<MessageResponseDto> {
     const message = await this.prisma.message.findUnique({
       where: { id: messageId },
     });
@@ -134,7 +148,10 @@ export class MessagesService implements OnModuleInit {
     await this.prisma.$transaction([
       this.prisma.message.update({
         where: { id: messageId },
-        data: { status: MessageStatus.sent, chars_sent: message.content.length },
+        data: {
+          status: MessageStatus.sent,
+          chars_sent: message.content.length,
+        },
       }),
       this.prisma.user.update({
         where: { id: message.sender_id },
@@ -142,7 +159,12 @@ export class MessagesService implements OnModuleInit {
       }),
     ]);
 
-    await this.deliverToRooms(message, sender?.callsign ?? 'UNKNOWN', false, now);
+    await this.deliverToRooms(
+      message,
+      sender?.callsign ?? 'UNKNOWN',
+      false,
+      now,
+    );
 
     this.gateway.emitToUser(message.sender_id, 'transmission:complete', {
       message_id: messageId,
@@ -150,7 +172,14 @@ export class MessagesService implements OnModuleInit {
   }
 
   private async deliverToRooms(
-    message: { id: string; sender_continent: string; sender_direction: number; content: string; target_continents: string[]; sender_id: string },
+    message: {
+      id: string;
+      sender_continent: string;
+      sender_direction: number;
+      content: string;
+      target_continents: string[];
+      sender_id: string;
+    },
     callsign: string,
     isInterrupted: boolean,
     now: Date,
@@ -166,7 +195,8 @@ export class MessagesService implements OnModuleInit {
         is_interrupted: isInterrupted,
       });
 
-      const onlineIds = await this.gateway.getOnlineUserIdsInContinent(continentId);
+      const onlineIds =
+        await this.gateway.getOnlineUserIdsInContinent(continentId);
       const offlineUsers = await this.prisma.user.findMany({
         where: {
           continent_id: continentId,
