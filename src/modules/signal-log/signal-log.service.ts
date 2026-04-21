@@ -28,7 +28,8 @@ export class SignalLogService {
       sender_continent: m.sender_continent,
       sender_direction: m.sender_direction,
       content: m.content,
-      transmitted_at: m.transmission_ends_at?.toISOString() ?? m.created_at.toISOString(),
+      transmitted_at:
+        m.transmission_ends_at?.toISOString() ?? m.created_at.toISOString(),
       is_interrupted: m.status === MessageStatus.interrupted,
     }));
   }
